@@ -4,8 +4,8 @@ Debian 11 (Bullseye) Docker container for Ansible role testing.
 
 ## Building
 
-This image is built on Docker Hub automatically any time the base container
-is rebuilt, and any time a commit is pushed to the `master` branch.
+This image is built automatically any time a commit is pushed to the `main`
+branch.
 
 ## Author
 
