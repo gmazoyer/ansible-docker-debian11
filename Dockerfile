@@ -1,34 +1,36 @@
 FROM debian:bullseye
 
-LABEL version="2.1"
+LABEL version="2.2"
 LABEL maintainer="Guillaume Mazoyer"
 LABEL description="Debian 11 container for Ansible role testing"
 
-ENV DEBIAN_FRONTEND noninteractive
+ARG DEBIAN_FRONTEND=noninteractive
 
-# Install requirements
+ENV pip_packages "ansible cryptography"
+
+# Install dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-               build-essential libffi-dev libssl-dev locales locales-all \
-               python3-pip python3-dev python3-setuptools python3-wheel \
-               sudo systemd \
+    sudo systemd systemd-sysv \
+    build-essential wget libffi-dev libssl-dev procps \
+    python3-pip python3-dev python3-setuptools python3-wheel python3-apt \
+    iproute2 \
     && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /usr/share/doc && rm -rf /usr/share/man \
+    && rm -Rf /usr/share/doc && rm -Rf /usr/share/man \
     && apt-get clean \
     && echo 'Europe/Paris' > /etc/timezone
 
-ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US.UTF-8
+# Upgrade pip to latest version
+RUN pip3 install --upgrade pip
 
-# Install Ansible
-RUN pip3 install cryptography ansible
+# Install Ansible via pip
+RUN pip3 install $pip_packages
 
-# Ansible inventory file
-RUN mkdir -p /etc/ansible/roles \
-    && echo "[local]\nlocalhost ansible_connection=local" > /etc/ansible/hosts
+# Install Ansible inventory file
+RUN mkdir -p /etc/ansible
+RUN echo "[local]\nlocalhost ansible_connection=local" > /etc/ansible/hosts
 
-# Make sure systemd does not mess with us
+# Make sure systemd doesn't start agettys on tty[1-6]
 RUN rm -f /lib/systemd/system/multi-user.target.wants/getty.target
 
 VOLUME ["/sys/fs/cgroup"]
